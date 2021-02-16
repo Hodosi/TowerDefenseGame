@@ -1,8 +1,9 @@
 
 class GameService():
 
-    def __init__(self, buttons_repository):
+    def __init__(self, buttons_repository, world_repository):
         self.__buttons_repository = buttons_repository
+        self.__world_repository = world_repository
 
     def addButton(self, button):
         self.__buttons_repository.addButton(button)
@@ -32,6 +33,22 @@ class GameService():
             if button.getName() == name:
                 self.__buttons_repository.deleteButton(button)
 
+    def getWorldData(self, level):
+        if level > 0:
+            return self.__world_repository.getInitWorldData(level)
+        else:
+            return self.__world_repository.getWorldData()
 
+    def addWall(self, wall):
+        self.__world_repository.addWall(wall)
+
+    def addRoad(self, road):
+        self.__world_repository.addRoad(road)
+
+    def getAllWalls(self):
+        return self.__world_repository.getAllWalls()
+
+    def getAllRoads(self):
+        return self.__world_repository.getAllRoads()
 
 

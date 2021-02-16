@@ -1,7 +1,7 @@
 import pygame
 from pygame.locals import *
 from pygame import mixer
-from domain.valueObject import Button
+from domain.valueObject import Button, Wall, Road
 
 
 class Screen():
@@ -16,9 +16,14 @@ class Screen():
         self.__clock = None
         self.__framerate = None
         self.__screen_minimized = False
+        self.__object_size = None
+        self.__world_start_y = None
+        self.__level = 1
         self.__setPygame()
         self.__setScreen()
         self.__setButtons()
+        self.__initWorldSize()
+        self.__setWorld()
 
     def __percent(self, size , prc):
         return int(size * prc / 100)
@@ -43,8 +48,60 @@ class Screen():
         self.__screen_height = monitor.current_h
         self.__screen = pygame.display.set_mode((0, 0), pygame.FULLSCREEN)
 
+    def __initWorldSize(self):
+        monitor = pygame.display.Info()
+        width = monitor.current_w
+        self.__object_size = width // 30
+        self.__world_start_y = self.__percent(self.__screen_height, 5)
+
+    def __setWorld(self):
+        world_data = self.__game_service.getWorldData(self.__level)
+
+        wall_image = pygame.image.load("image/brick_wall.png")
+        road_image = pygame.image.load("image/road.png")
+
+        row_count = 0
+        for line in world_data:
+            col_count = 0
+            y = row_count * self.__object_size + self.__world_start_y
+            for value in line:
+                x = col_count * self.__object_size
+                if value == 1:
+                    image = pygame.transform.scale(wall_image, (self.__object_size, self.__object_size))
+                    wall = Wall(image, x, y)
+                    self.__game_service.addWall(wall)
+                if value == 2:
+                    image = pygame.transform.scale(road_image, (self.__object_size, self.__object_size))
+                    road = Road(image, x, y)
+                    self.__game_service.addRoad(road)
+
+                col_count += 1
+            row_count += 1
+
+    def __drawWorld(self):
+        walls = self.__game_service.getAllWalls()
+        for wall in walls:
+            self.__screen.blit(wall.getImage(), (wall.getX(), wall.getY()))
+
+        roads = self.__game_service.getAllRoads()
+        for road in roads:
+            self.__screen.blit(road.getImage(), (road.getX(), road.getY()))
 
 
+
+    def __drawGrid(self):
+        #lines
+        monitor = pygame.display.Info()
+        self.__screen_width = monitor.current_w
+        self.__screen_height = monitor.current_h
+        for i in range(0, 16):
+            start_point = i * self.__object_size + self.__world_start_y
+            pygame.draw.line(self.__screen, (255, 255, 255), (0, start_point), (self.__screen_width, start_point))
+
+        #cols
+        for i in range(0, 30):
+            start_point = i * self.__object_size
+            pygame.draw.line(self.__screen, (255, 255, 255), (start_point, self.__world_start_y), (start_point, self.__screen_height))
 
     def __setButtons(self):
         #exit button
@@ -145,6 +202,8 @@ class Screen():
             self.__screen.blit(self.__screen_background_image, (0, 0))
 
             if self.__screen_minimized == False:
+                self.__drawWorld()
+                self.__drawGrid()
                 button = self.__drawButtons("common")
             else:
                 button = self.__drawButtons("special")

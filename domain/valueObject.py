@@ -35,5 +35,37 @@ class Button():
     def setY(self, value):
         self.__y = value
 
+class Wall():
+
+    def __init__(self, image, x, y):
+        self.__image = image
+        self.__x = x
+        self.__y = y
+
+    def getImage(self):
+        return self.__image
+
+    def getX(self):
+        return self.__x
+
+    def getY(self):
+        return self.__y
+
+
+class Road():
+
+    def __init__(self, image, x, y):
+        self.__image = image
+        self.__x = x
+        self.__y = y
+
+    def getImage(self):
+        return self.__image
+
+    def getX(self):
+        return self.__x
+
+    def getY(self):
+        return self.__y
 
 

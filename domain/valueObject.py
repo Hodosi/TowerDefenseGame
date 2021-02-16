@@ -29,4 +29,11 @@ class Button():
     def setClickedStatus(self, value):
         self.__clicked = value
 
+    def setX(self, value):
+        self.__x = value
+
+    def setY(self, value):
+        self.__y = value
+
+
 

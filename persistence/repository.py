@@ -9,3 +9,11 @@ class ButtonsRepository():
 
     def getAllButtons(self):
         return self.__buttons
+
+    def deleteButton(self, button):
+        new_data = []
+        for btn in self.__buttons:
+            if btn.getName() != button.getName():
+                new_data.append(btn)
+
+        self.__buttons = new_data

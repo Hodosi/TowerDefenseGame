@@ -17,6 +17,20 @@ class GameService():
 
         return type_buttons
 
+    def getButtonByName(self, name):
+        all_buttons = self.__buttons_repository.getAllButtons()
+
+        for button in all_buttons:
+            if button.getName() == name:
+                return button
+
+
+    def deleteButtonByName(self, name):
+        all_buttons = self.__buttons_repository.getAllButtons()
+
+        for button in all_buttons:
+            if button.getName() == name:
+                self.__buttons_repository.deleteButton(button)
 
 
 

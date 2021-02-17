@@ -1,7 +1,6 @@
 import pygame
 from pygame.locals import *
 from pygame import mixer
-from domain.valueObject import Button, Wall, Road
 
 
 class Screen():
@@ -58,7 +57,7 @@ class Screen():
         world_data = self.__game_service.getWorldData(self.__level)
 
         wall_image = pygame.image.load("image/brick_wall.png")
-        road_image = pygame.image.load("image/road.png")
+        road_image = pygame.image.load("image/cracks.png")
 
         row_count = 0
         for line in world_data:
@@ -68,12 +67,10 @@ class Screen():
                 x = col_count * self.__object_size
                 if value == 1:
                     image = pygame.transform.scale(wall_image, (self.__object_size, self.__object_size))
-                    wall = Wall(image, x, y)
-                    self.__game_service.addWall(wall)
+                    self.__game_service.createWall(image, x, y)
                 if value == 2:
                     image = pygame.transform.scale(road_image, (self.__object_size, self.__object_size))
-                    road = Road(image, x, y)
-                    self.__game_service.addRoad(road)
+                    self.__game_service.createRoad(image, x, y)
 
                 col_count += 1
             row_count += 1
@@ -90,6 +87,8 @@ class Screen():
 
 
     def __drawGrid(self):
+        # for visualization
+
         #lines
         monitor = pygame.display.Info()
         self.__screen_width = monitor.current_w
@@ -111,8 +110,7 @@ class Screen():
         exit_button_width = self.__percent(self.__screen_width, 5)
         exit_button_height = self.__percent(self.__screen_height, 5)
         exit_image = pygame.transform.scale(exit_image, (exit_button_width, exit_button_height))
-        exit_button = Button("exit", "common", exit_image, exit_button_x, exit_button_y)
-        self.__game_service.addButton(exit_button)
+        self.__game_service.createButton("exit", "common", exit_image, exit_button_x, exit_button_y)
 
         #minimize button
         minimize_image = pygame.image.load("image/minimize.png")
@@ -121,8 +119,7 @@ class Screen():
         minimize_button_width = self.__percent(self.__screen_width, 4)
         minimize_button_height = self.__percent(self.__screen_height, 3)
         minimize_image = pygame.transform.scale(minimize_image, (minimize_button_width, minimize_button_height))
-        minimize_button = Button("minimize", "common", minimize_image, minimize_button_x, minimize_button_y)
-        self.__game_service.addButton(minimize_button)
+        self.__game_service.createButton("minimize", "common", minimize_image, minimize_button_x, minimize_button_y)
 
     def __set_maximize_button(self):
         #maximize button
@@ -132,8 +129,7 @@ class Screen():
         maximize_button_width = self.__screen_width
         maximize_button_height = self.__screen_height
         maximize_image = pygame.transform.scale(maximize_image, (maximize_button_width, maximize_button_height))
-        maximize_button = Button("maximize", "special", maximize_image, maximize_button_x, maximize_button_y)
-        self.__game_service.addButton(maximize_button)
+        self.__game_service.createButton("maximize", "special", maximize_image, maximize_button_x, maximize_button_y)
 
     def __buttonClicked(self, button):
         clicked = False

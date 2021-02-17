@@ -23,7 +23,7 @@ for i in range(lines):
 object_list = []
 grass_image = pygame.image.load("image/grassland.png")
 wall_image = pygame.image.load("image/brick_wall.png")
-road_image = pygame.image.load("image/road.png")
+road_image = pygame.image.load("image/cracks.png")
 
 def __drawWorld():
     object_list = []

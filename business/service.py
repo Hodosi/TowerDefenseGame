@@ -1,3 +1,4 @@
+from domain.valueObject import Button, Wall, Road
 
 class GameService():
 
@@ -5,7 +6,8 @@ class GameService():
         self.__buttons_repository = buttons_repository
         self.__world_repository = world_repository
 
-    def addButton(self, button):
+    def createButton(self, name, type, exit_image, exit_button_x, exit_button_y):
+        button = Button(name, type, exit_image, exit_button_x, exit_button_y)
         self.__buttons_repository.addButton(button)
 
     def getButtonsByType(self, type):
@@ -39,10 +41,12 @@ class GameService():
         else:
             return self.__world_repository.getWorldData()
 
-    def addWall(self, wall):
+    def createWall(self, image, x, y):
+        wall = Wall(image, x, y)
         self.__world_repository.addWall(wall)
 
-    def addRoad(self, road):
+    def createRoad(self, image, x, y):
+        road = Road(image, x, y)
         self.__world_repository.addRoad(road)
 
     def getAllWalls(self):

@@ -108,10 +108,10 @@ class UI():
                 x = col_count * world_object_size
                 if value == 1:
                     image = pygame.transform.scale(wall_image, (world_object_size, world_object_size))
-                    self.__world_service.createWall(image, x, y)
+                    self.__world_service.createWall(image, x, y, world_object_size, world_object_size)
                 if value == 2:
                     image = pygame.transform.scale(road_image, (world_object_size, world_object_size))
-                    self.__world_service.createRoad(image, x, y)
+                    self.__world_service.createRoad(image, x, y, world_object_size, world_object_size)
 
                 col_count += 1
             row_count += 1
@@ -177,7 +177,7 @@ class UI():
         exit_button_width = self.__percent(width, 5)
         exit_button_height = self.__percent(height, 5)
         exit_image = pygame.transform.scale(exit_image, (exit_button_width, exit_button_height))
-        self.__button_service.createButton("exit", "common", exit_image, exit_button_x, exit_button_y)
+        self.__button_service.createButton("exit", "common", exit_image, exit_button_x, exit_button_y, exit_button_width, exit_button_height)
 
         #minimize button
         minimize_image = pygame.image.load("image/minimize.png")
@@ -186,7 +186,7 @@ class UI():
         minimize_button_width = self.__percent(width, 4)
         minimize_button_height = self.__percent(height, 3)
         minimize_image = pygame.transform.scale(minimize_image, (minimize_button_width, minimize_button_height))
-        self.__button_service.createButton("minimize", "common", minimize_image, minimize_button_x, minimize_button_y)
+        self.__button_service.createButton("minimize", "common", minimize_image, minimize_button_x, minimize_button_y, minimize_button_width, minimize_button_height)
 
     def __set_maximize_button(self):
         """
@@ -203,53 +203,7 @@ class UI():
         maximize_button_width = width
         maximize_button_height = height
         maximize_image = pygame.transform.scale(maximize_image, (maximize_button_width, maximize_button_height))
-        self.__button_service.createButton("maximize", "special", maximize_image, maximize_button_x, maximize_button_y)
-
-    def __buttonClicked(self, button):
-        """
-        check if a button was clicked
-        :param button: a button of game
-        :return: True if input button was clicked, False otherwise
-        """
-        clicked = False
-
-        # get mouse position
-        mouse_position = pygame.mouse.get_pos()
-
-        button_rectangle = button.getImage().get_rect()
-        button_rectangle.x = button.getX()
-        button_rectangle.y = button.getY()
-
-        # check mouseover and clicked condition
-        if button_rectangle.collidepoint(mouse_position):
-            if pygame.mouse.get_pressed()[0] == 1 and button.getClickedStatus() == False:
-                clicked = True
-                button.setClickedStatus(True)
-
-        if pygame.mouse.get_pressed()[0] == 0:
-            clicked = False
-            button.setClickedStatus(False)
-
-        return clicked
-
-
-    def __drawButtons(self, type):
-        """
-        draw buttons on screen and check which button was clicked
-        :param type: type of buttons
-        :return: clicked button object, if it exists, None otherwise
-        """
-        display = self.__screen.getDisplay()
-
-        clicked_button = None
-        buttons = self.__button_service.getButtonsByType(type)
-        for button in buttons:
-            if self.__buttonClicked(button):
-                clicked_button = button
-
-            display.blit(button.getImage(), (button.getX(), button.getY()))
-
-        return clicked_button
+        self.__button_service.createButton("maximize", "special", maximize_image, maximize_button_x, maximize_button_y, maximize_button_width, maximize_button_height)
 
 
     def __buttonEvent(self, button):
@@ -280,6 +234,44 @@ class UI():
 
         return True
 
+    def __checkButtonClickUI(self, type):
+        """
+        transmit clicked button, if it exists, to button event controller in UI
+        :param type: type of buttons needs to check
+        :return: False if exit button was clicked, True otherwise
+        """
+        button = None
+
+        if pygame.mouse.get_pressed()[0] == 1:
+            mouse_position = pygame.mouse.get_pos()
+            mouse_x = mouse_position[0]
+            mouse_y = mouse_position[1]
+            button = self.__button_service.buttonCollision(type, mouse_x, mouse_y)
+
+        if pygame.mouse.get_pressed()[0] == 0:
+            self.__button_service.changeClickedStatus(type, False)
+
+
+        if button != None:
+            run = self.__buttonEvent(button)
+            if run == False:
+                return False
+
+
+    def __drawButtons(self, type):
+        """
+        draw buttons on screen
+        :param type: type of buttons
+        :return:
+        """
+        display = self.__screen.getDisplay()
+        buttons = self.__button_service.getButtonsByType(type)
+
+        for button in buttons:
+            display.blit(button.getImage(), (button.getX(), button.getY()))
+
+
+
 
     def main_loop(self):
         """
@@ -300,15 +292,13 @@ class UI():
             if self.__screen.getMinimizedStatus() == False:
                 self.__drawWorld()
                 self.__drawGrid()
-                button = self.__drawButtons("common")
-            else:
-                button = self.__drawButtons("special")
-
-
-            if button != None:
-                run = self.__buttonEvent(button)
-                if run == False:
+                self.__drawButtons("common")
+                if self.__checkButtonClickUI("common") == False:
+                    run = False
                     break
+            else:
+                self.__drawButtons("special")
+                self.__checkButtonClickUI("special")
 
 
             for event in pygame.event.get():

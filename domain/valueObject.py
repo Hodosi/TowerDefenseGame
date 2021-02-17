@@ -1,9 +1,11 @@
 class ValueObject():
 
-    def __init__(self, image, x, y):
+    def __init__(self, image, x, y, width, height):
         self.__image = image
         self.__x = x
         self.__y = y
+        self.__width = width
+        self.__height = height
 
     def getImage(self):
         return self.__image
@@ -14,10 +16,16 @@ class ValueObject():
     def getY(self):
         return self.__y
 
+    def getWidth(self):
+        return self.__width
+
+    def getHeight(self):
+        return self.__height
+
 class Button(ValueObject):
 
-    def __init__(self, name, type, image, x, y):
-        ValueObject.__init__(self, image, x, y)
+    def __init__(self, name, type, image, x, y, width, height):
+        ValueObject.__init__(self, image, x, y, width, height)
         self.__name = name
         self.__type = type
         self.__clicked = False
@@ -37,12 +45,12 @@ class Button(ValueObject):
 
 class Wall(ValueObject):
 
-    def __init__(self, image, x, y):
-        ValueObject.__init__(self, image, x, y)
+    def __init__(self, image, x, y, width, height):
+        ValueObject.__init__(self, image, x, y, width, height)
 
 
 class Road(ValueObject):
 
-    def __init__(self, image, x, y):
-        ValueObject.__init__(self, image, x, y)
+    def __init__(self, image, x, y, width, height):
+        ValueObject.__init__(self, image, x, y, width, height)
 

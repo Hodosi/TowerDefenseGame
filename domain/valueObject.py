@@ -54,3 +54,13 @@ class Road(ValueObject):
     def __init__(self, image, x, y, width, height):
         ValueObject.__init__(self, image, x, y, width, height)
 
+class Arrow(ValueObject):
+
+    def __init__(self, image, x, y, width, height, direction):
+        ValueObject.__init__(self, image, x, y, width, height)
+        self.__direction = direction
+
+    def getDirection(self):
+        return self.__direction
+
+

@@ -7,9 +7,10 @@ from domain.clock import Clock
 
 class UI():
 
-    def __init__(self, button_service, world_service):
+    def __init__(self, button_service, world_service, enemy_service):
         self.__button_service = button_service
         self.__world_service = world_service
+        self.__enemy_service = enemy_service
         self.__screen = Screen()
         self.__world = World()
         self.__clock = Clock()
@@ -19,6 +20,7 @@ class UI():
         self.__setButtons()
         self.__initWorldSize()
         self.__setWorld()
+        self.__setEnemies()
 
 
     def __percent(self, size, percent):
@@ -97,8 +99,13 @@ class UI():
         world_start_y = self.__world.getStartY()
 
         #load images
-        wall_image = pygame.image.load("image/brick_wall.png")
-        road_image = pygame.image.load("image/cracks.png")
+        wall_image = pygame.image.load("image/brick_wall.png") #1
+        road_image = pygame.image.load("image/cracks.png") #2
+        road_start_image = pygame.image.load("image/cracks_start.png") #3
+        left_arrow = pygame.image.load("image/left_arrow.png") #4
+        right_arrow = pygame.image.load("image/right_arrow.png") #5
+        up_arrow = pygame.image.load("image/up_arrow.png") #6
+        down_arrow = pygame.image.load("image/down_arrow.png") #7
 
         row_count = 0
         for line in world_data:
@@ -112,9 +119,29 @@ class UI():
                 if value == 2:
                     image = pygame.transform.scale(road_image, (world_object_size, world_object_size))
                     self.__world_service.createRoad(image, x, y, world_object_size, world_object_size)
+                if value == 3:
+                    image = pygame.transform.scale(road_start_image, (world_object_size, world_object_size))
+                    self.__world_service.createStartRoad(image, x, y, world_object_size, world_object_size)
+                if value == 4:
+                    direction = "left"
+                    image = pygame.transform.scale(left_arrow, (world_object_size, world_object_size))
+                    self.__world_service.createArrow(image, x, y, world_object_size, world_object_size, direction)
+                if value == 5:
+                    direction = "right"
+                    image = pygame.transform.scale(right_arrow, (world_object_size, world_object_size))
+                    self.__world_service.createArrow(image, x, y, world_object_size, world_object_size, direction)
+                if value == 6:
+                    direction = "up"
+                    image = pygame.transform.scale(up_arrow, (world_object_size, world_object_size))
+                    self.__world_service.createArrow(image, x, y, world_object_size, world_object_size, direction)
+                if value == 7:
+                    direction = "down"
+                    image = pygame.transform.scale(down_arrow, (world_object_size, world_object_size))
+                    self.__world_service.createArrow(image, x, y, world_object_size, world_object_size, direction)
 
                 col_count += 1
             row_count += 1
+
 
     def __drawWorld(self):
         """
@@ -129,10 +156,21 @@ class UI():
         for wall in walls:
             display.blit(wall.getImage(), (wall.getX(), wall.getY()))
 
+        #draw start roads
+        roads = self.__world_service.getAllStartRoads()
+        for road in roads:
+            display.blit(road.getImage(), (road.getX(), road.getY()))
+
         #draw roads
         roads = self.__world_service.getAllRoads()
         for road in roads:
             display.blit(road.getImage(), (road.getX(), road.getY()))
+
+        #draw arrows
+        arrows = self.__world_service.getAllArrows()
+        for arrow in arrows:
+            display.blit(arrow.getImage(), (arrow.getX(), arrow.getY()))
+
 
 
 
@@ -161,6 +199,46 @@ class UI():
         for i in range(0, 30):
             start_point = i * world_object_size
             pygame.draw.line(display, (255, 255, 255), (start_point, world_start_y), (start_point, height))
+
+    def __setEnemies(self):
+        """
+        initialize enemies of game
+        :return:
+        """
+        level = self.__world.getLevel()
+        start_road = self.__world_service.getAllStartRoads()
+        world_object_size = self.__world.getObjectSize()
+        enemy_size = self.__percent(world_object_size, 80)
+        center = self.__percent(world_object_size, 10)
+
+        #aliens
+        # id, image, x, y, width, height, power, life
+        aliens_count = self.__enemy_service.getAliensCount(level)
+        alien_image = pygame.image.load("image/alien.png")
+        alien_image = pygame.transform.scale(alien_image, (enemy_size, enemy_size))
+        alien_power = 10
+        self.__enemy_service.createAliens(aliens_count, start_road, alien_image, enemy_size, alien_power, center)
+
+    def __updateEnemies(self):
+        """
+        transmit arrows of game to service to update enemies position
+        :return:
+        """
+        arrows = self.__world_service.getAllArrows()
+        self.__enemy_service.updateAliens(arrows)
+
+    def __drawEnemies(self):
+        """
+        draw enemies of game on screen
+        :return:
+        """
+        #get screen
+        display = self.__screen.getDisplay()
+
+        #draw aliens
+        aliens = self.__enemy_service.getAllAliens()
+        for alien in aliens:
+            display.blit(alien.getImage(), (alien.getX(), alien.getY()))
 
     def __setButtons(self):
         """
@@ -247,6 +325,8 @@ class UI():
             mouse_x = mouse_position[0]
             mouse_y = mouse_position[1]
             button = self.__button_service.buttonCollision(type, mouse_x, mouse_y)
+            if button != None:
+                button.setClickedStatus(True)
 
         if pygame.mouse.get_pressed()[0] == 0:
             self.__button_service.changeClickedStatus(type, False)
@@ -292,6 +372,8 @@ class UI():
             if self.__screen.getMinimizedStatus() == False:
                 self.__drawWorld()
                 self.__drawGrid()
+                self.__updateEnemies()
+                self.__drawEnemies()
                 self.__drawButtons("common")
                 if self.__checkButtonClickUI("common") == False:
                     run = False

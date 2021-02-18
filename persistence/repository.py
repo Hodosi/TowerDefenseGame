@@ -5,6 +5,8 @@ class WorldRepository():
         self.__world_data = []
         self.__wall = []
         self.__road = []
+        self.__start_road = []
+        self.__arrow = []
 
     def __read_all(self, level):
         filename = "levels/level" + str(level) + ".txt"
@@ -40,6 +42,19 @@ class WorldRepository():
     def getAllRoads(self):
         return self.__road
 
+    def addStartRoad(self, road):
+        self.__start_road.append(road)
+
+    def getAllStartRoads(self):
+        return self.__start_road
+
+    def addArrow(self, arrow):
+        self.__arrow.append(arrow)
+
+    def getAllArrows(self):
+        return self.__arrow
+
+
 class ButtonsRepository():
 
     def __init__(self):
@@ -58,3 +73,52 @@ class ButtonsRepository():
                 new_data.append(btn)
 
         self.__buttons = new_data
+
+class EnemyRepository():
+
+    def __init__(self):
+        self.__aliens = []
+        self.__aliens_count = 0
+
+    def __read_all(self, level):
+        filename = "levels/level" + str(level) + "_enemies.txt"
+        with open(filename, "r") as f:
+            lines = f.readlines()
+            self.__aliens_count = 0
+            for line in lines:
+                line.strip()
+                if line != "":
+                    parts = line.split(",")
+                    if parts[0] == "alien":
+                        self.__aliens_count = int(parts[1])
+
+
+    def getAliensCount(self, level):
+        self.__read_all(level)
+        return self.__aliens_count
+
+    def getAllAliens(self):
+        return self.__aliens
+
+    def addAlien(self, alien):
+        self.__aliens.append(alien)
+
+    def deleteAlien(self, alien):
+        new_data = []
+        for aln in self.__aliens:
+            if aln.getId() != alien.getId():
+                new_data.append(aln)
+
+        self.__aliens = new_data
+
+    def updateAlien(self, alien):
+        new_data = []
+        for aln in self.__aliens:
+            if aln.getId() == alien.getId():
+                new_data.append(alien)
+            else:
+                new_data.append(aln)
+
+        self.__aliens = new_data
+
+

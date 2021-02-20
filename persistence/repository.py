@@ -1,4 +1,3 @@
-
 class WorldRepository():
 
     def __init__(self):
@@ -7,6 +6,8 @@ class WorldRepository():
         self.__road = []
         self.__start_road = []
         self.__arrow = []
+        self.__war_zone = []
+        self.__warrior_zone = None
 
     def __read_all(self, level):
         filename = "levels/level" + str(level) + ".txt"
@@ -54,6 +55,18 @@ class WorldRepository():
     def getAllArrows(self):
         return self.__arrow
 
+    def addWarZone(self, war_zone):
+        self.__war_zone.append(war_zone)
+
+    def getAllWarZones(self):
+        return self.__war_zone
+
+    def addWarriorZone(self, zone):
+        self.__warrior_zone = zone
+
+    def getWarriorZone(self):
+        return self.__warrior_zone
+
 
 class ButtonsRepository():
 
@@ -74,6 +87,7 @@ class ButtonsRepository():
 
         self.__buttons = new_data
 
+
 class EnemyRepository():
 
     def __init__(self):
@@ -91,7 +105,6 @@ class EnemyRepository():
                     parts = line.split(",")
                     if parts[0] == "alien":
                         self.__aliens_count = int(parts[1])
-
 
     def getAliensCount(self, level):
         self.__read_all(level)
@@ -120,5 +133,59 @@ class EnemyRepository():
                 new_data.append(aln)
 
         self.__aliens = new_data
+
+
+class WarriorRepository():
+
+    def __init__(self):
+        self.__archers = []
+        self.__archers_count = 0
+
+    def __read_all(self, level):
+        filename = "levels/level" + str(level) + "_warriors.txt"
+        with open(filename, "r") as f:
+            lines = f.readlines()
+            self.__archers_count = 0
+            for line in lines:
+                line.strip()
+                if line != "":
+                    parts = line.split(",")
+                    if parts[0] == "archer":
+                        self.__archers_count = int(parts[1])
+
+    def getArchersInitCount(self, level):
+        self.__read_all(level)
+        return self.__archers_count
+
+    def getArchersCount(self):
+        return self.__archers_count
+
+    def setArchersCount(self, value):
+        self.__archers_count = value
+
+    def getAllArchers(self):
+        return self.__archers
+
+    def addArcher(self, archer):
+        self.__archers.append(archer)
+
+    def deleteArcher(self, archers):
+        new_data = []
+        for arc in self.__archers:
+            if arc.getId() != archers.getId():
+                new_data.append(arc)
+
+        self.__archers = new_data
+
+    def updateArcher(self, archer):
+        new_data = []
+        for arc in self.__archers:
+            if arc.getId() == archer.getId():
+                new_data.append(archer)
+            else:
+                new_data.append(arc)
+
+        self.__archers = new_data
+
 
 

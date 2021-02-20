@@ -7,10 +7,11 @@ from domain.clock import Clock
 
 class UI():
 
-    def __init__(self, button_service, world_service, enemy_service):
+    def __init__(self, button_service, world_service, enemy_service, warrior_service):
         self.__button_service = button_service
         self.__world_service = world_service
         self.__enemy_service = enemy_service
+        self.__warrior_service = warrior_service
         self.__screen = Screen()
         self.__world = World()
         self.__clock = Clock()
@@ -21,7 +22,7 @@ class UI():
         self.__initWorldSize()
         self.__setWorld()
         self.__setEnemies()
-
+        self.__setWarrios()
 
     def __percent(self, size, percent):
         """
@@ -30,7 +31,6 @@ class UI():
         :return: percent of size as an integer
         """
         return int(size * percent / 100)
-
 
     def __setPygame(self):
         """
@@ -47,7 +47,6 @@ class UI():
         """
         self.__clock.setTime(pygame.time.Clock())
         self.__clock.setFramerate(60)
-
 
     def __setScreen(self):
         """
@@ -94,18 +93,20 @@ class UI():
         :return:
         """
         level = self.__world.getLevel()
-        world_data = self.__world_service.getWorldData(level)
+        world_data = self.__world_service.getInitWorldData(level)
         world_object_size = self.__world.getObjectSize()
         world_start_y = self.__world.getStartY()
 
-        #load images
-        wall_image = pygame.image.load("image/brick_wall.png") #1
-        road_image = pygame.image.load("image/cracks.png") #2
-        road_start_image = pygame.image.load("image/cracks_start.png") #3
-        left_arrow = pygame.image.load("image/left_arrow.png") #4
-        right_arrow = pygame.image.load("image/right_arrow.png") #5
-        up_arrow = pygame.image.load("image/up_arrow.png") #6
-        down_arrow = pygame.image.load("image/down_arrow.png") #7
+        # load images
+        wall_image = pygame.image.load("image/brick_wall.png")  # 1
+        road_image = pygame.image.load("image/cracks.png")  # 2
+        road_start_image = pygame.image.load("image/cracks_start.png")  # 3
+        left_arrow = pygame.image.load("image/left_arrow.png")  # 4
+        right_arrow = pygame.image.load("image/right_arrow.png")  # 5
+        up_arrow = pygame.image.load("image/up_arrow.png")  # 6
+        down_arrow = pygame.image.load("image/down_arrow.png")  # 7
+        war_zone_image = pygame.image.load("image/swords.png")  # 8
+        warrior_zone = pygame.image.load("image/shield.png")  # 9
 
         row_count = 0
         for line in world_data:
@@ -138,41 +139,56 @@ class UI():
                     direction = "down"
                     image = pygame.transform.scale(down_arrow, (world_object_size, world_object_size))
                     self.__world_service.createArrow(image, x, y, world_object_size, world_object_size, direction)
+                if value == 8:
+                    image = pygame.transform.scale(war_zone_image, (world_object_size, world_object_size))
+                    self.__world_service.createWarZone(image, x, y, world_object_size, world_object_size)
+                if value == 9:
+                    image = pygame.transform.scale(warrior_zone, (world_object_size, world_object_size))
+                    self.__world_service.createWarriorZone(image, x, y, world_object_size, world_object_size)
 
                 col_count += 1
             row_count += 1
-
 
     def __drawWorld(self):
         """
         draw world objects on screen
         :return:
         """
-        #get screen
+        # get screen
         display = self.__screen.getDisplay()
 
-        #draw walls
+        # draw walls
         walls = self.__world_service.getAllWalls()
         for wall in walls:
             display.blit(wall.getImage(), (wall.getX(), wall.getY()))
 
-        #draw start roads
+        # draw start roads
         roads = self.__world_service.getAllStartRoads()
         for road in roads:
             display.blit(road.getImage(), (road.getX(), road.getY()))
 
-        #draw roads
+        # draw roads
         roads = self.__world_service.getAllRoads()
         for road in roads:
             display.blit(road.getImage(), (road.getX(), road.getY()))
 
-        #draw arrows
+        # draw arrows
         arrows = self.__world_service.getAllArrows()
         for arrow in arrows:
             display.blit(arrow.getImage(), (arrow.getX(), arrow.getY()))
 
+        # draw war zones
+        war_zones = self.__world_service.getAllWarZones()
+        for war_zone in war_zones:
+            display.blit(war_zone.getImage(), (war_zone.getX(), war_zone.getY()))
 
-
+        # draw warrior zone
+        warrior_zone = self.__world_service.getWarriorZone()
+        display.blit(warrior_zone.getImage(), (warrior_zone.getX(), warrior_zone.getY()))
+        rectangle = warrior_zone.getImage().get_rect()
+        rectangle.x = warrior_zone.getX()
+        rectangle.y = warrior_zone.getY()
+        pygame.draw.rect(display, (255, 0, 0), rectangle, 5)
 
     def __drawGrid(self):
         """
@@ -209,15 +225,17 @@ class UI():
         start_road = self.__world_service.getAllStartRoads()
         world_object_size = self.__world.getObjectSize()
         enemy_size = self.__percent(world_object_size, 80)
+        width = enemy_size
+        height = enemy_size
         center = self.__percent(world_object_size, 10)
 
-        #aliens
-        # id, image, x, y, width, height, power, life
-        aliens_count = self.__enemy_service.getAliensCount(level)
-        alien_image = pygame.image.load("image/alien.png")
-        alien_image = pygame.transform.scale(alien_image, (enemy_size, enemy_size))
-        alien_power = 10
-        self.__enemy_service.createAliens(aliens_count, start_road, alien_image, enemy_size, alien_power, center)
+        # aliens
+        name = "alien"
+        count = self.__enemy_service.getEnemiesCount(name, level)
+        image = pygame.image.load("image/" + name + ".png")
+        image = pygame.transform.scale(image, (width, height))
+        power = 10
+        self.__enemy_service.createEnemies(name, count, start_road, image, width, height, power, center)
 
     def __updateEnemies(self):
         """
@@ -225,20 +243,118 @@ class UI():
         :return:
         """
         arrows = self.__world_service.getAllArrows()
-        self.__enemy_service.updateAliens(arrows)
+
+        # aliens
+        name = "alien"
+        aliens = self.__enemy_service.getAllEnemies(name)
+        self.__enemy_service.updateEnemies(aliens, arrows)
 
     def __drawEnemies(self):
         """
         draw enemies of game on screen
         :return:
         """
-        #get screen
+        # get screen
         display = self.__screen.getDisplay()
 
-        #draw aliens
-        aliens = self.__enemy_service.getAllAliens()
+        # draw aliens
+        aliens = self.__enemy_service.getAllEnemies("alien")
         for alien in aliens:
             display.blit(alien.getImage(), (alien.getX(), alien.getY()))
+
+    def __setWarrios(self):
+        """
+        initialize warriors of game
+        :return:
+        """
+        level = self.__world.getLevel()
+        world_object_size = self.__world.getObjectSize()
+        world_start_y = self.__world.getStartY()
+
+        id = 0
+        y = world_start_y
+        width = world_object_size
+        height = world_object_size
+
+        # archers
+        archers_count = self.__warrior_service.getWarriorsInitCount("archer", level)
+        archers_image = pygame.image.load("image/archer.png")
+        archers_image = pygame.transform.scale(archers_image, (world_object_size, world_object_size))
+        x = 0
+        archers_power = 4
+        self.__warrior_service.createWarrior(id, "archer", archers_image, x, y, width, height, archers_power)
+
+    def __updateWarriors(self):
+        """
+        update warriors, war zones and warrior zone of game
+        :return:
+        """
+        war_zone = self.__world_service.getAllWarZones()
+        warrior_zone = self.__world_service.getWarriorZone()
+        archers = self.__warrior_service.getAllWarriors("archer")
+        if pygame.mouse.get_pressed()[0] == 1:
+            mouse_position = pygame.mouse.get_pos()
+            mouse_x = mouse_position[0]
+            mouse_y = mouse_position[1]
+            # archers
+            name = "archer"
+            self.__warrior_service.updateWarriorZone(warrior_zone, name, mouse_x, mouse_y)
+            self.__warrior_service.updateWarZone(war_zone, warrior_zone, mouse_x, mouse_y)
+            self.__warrior_service.updateWarriors(archers, warrior_zone, mouse_x, mouse_y)
+
+        if pygame.mouse.get_pressed()[0] == 0:
+            # archers
+            self.__warrior_service.changeClickedStatus(archers, warrior_zone, war_zone, False)
+
+    def __drawWarriorsCount(self, count, x, y):
+        """
+        draw a number on screen
+        :param count:
+        :param x:
+        :param y:
+        :return:
+        """
+        world_object_size = self.__world.getObjectSize()
+        size_of_text = self.__percent(world_object_size, 40)
+        x += self.__percent(world_object_size, 50)
+        y += self.__percent(world_object_size, 60)
+
+        count = str(count)
+
+        # get screen
+        display = self.__screen.getDisplay()
+
+        # draw text
+        font = pygame.font.SysFont("Bauhaus 93", size_of_text)
+        red = (255, 0, 0)
+        black = (0, 0, 0)
+        image = font.render(count, True, black)
+
+        display.blit(image, (x, y))
+
+    def __drawWarriors(self):
+        """
+        draw warriors of game
+        :return:
+        """
+        # get screen
+        display = self.__screen.getDisplay()
+
+        # draw archers
+        archers = self.__warrior_service.getAllWarriors("archer")
+        for archer in archers:
+            display.blit(archer.getImage(), (archer.getX(), archer.getY()))
+            id = archer.getId()
+            if id == 0:
+                # draw warrior
+                rectengle = archer.getImage().get_rect()
+                rectengle.x = archer.getX()
+                rectengle.y = archer.getY()
+                pygame.draw.rect(display, (0, 255, 0), rectengle, 5)
+
+                # draw count
+                count = self.__warrior_service.getWarriorsCount("archer")
+                self.__drawWarriorsCount(count, archer.getX(), archer.getY())
 
     def __setButtons(self):
         """
@@ -248,7 +364,7 @@ class UI():
         width = self.__screen.getWidth()
         height = self.__screen.getHeight()
 
-        #exit button
+        # exit button
         exit_image = pygame.image.load("image/exit.png")
         exit_button_x = width - self.__percent(width, 5)
         exit_button_y = 0
@@ -257,7 +373,7 @@ class UI():
         exit_image = pygame.transform.scale(exit_image, (exit_button_width, exit_button_height))
         self.__button_service.createButton("exit", "common", exit_image, exit_button_x, exit_button_y, exit_button_width, exit_button_height)
 
-        #minimize button
+        # minimize button
         minimize_image = pygame.image.load("image/minimize.png")
         minimize_button_x = width - 2 * self.__percent(width, 5) + 1*self.__percent(width, 1)
         minimize_button_y = self.__percent(height, 1)
@@ -274,7 +390,7 @@ class UI():
         width = self.__screen.getWidth()
         height = self.__screen.getHeight()
 
-        #maximize button
+        # maximize button
         maximize_image = pygame.image.load("image/maximize.png")
         maximize_button_x = 0
         maximize_button_y = 0
@@ -282,7 +398,6 @@ class UI():
         maximize_button_height = height
         maximize_image = pygame.transform.scale(maximize_image, (maximize_button_width, maximize_button_height))
         self.__button_service.createButton("maximize", "special", maximize_image, maximize_button_x, maximize_button_y, maximize_button_width, maximize_button_height)
-
 
     def __buttonEvent(self, button):
         """
@@ -292,6 +407,7 @@ class UI():
         """
         if button.getName() == "exit":
             return False
+
         if button.getName() == "maximize":
             self.__resetScreen()
             self.__button_service.deleteButtonByName("maximize")
@@ -308,7 +424,6 @@ class UI():
             self.__screen.setMinimizedStatus(True)
             maximize_button = self.__button_service.getButtonByName("maximize")
             maximize_button.setClickedStatus(True)
-
 
         return True
 
@@ -331,12 +446,10 @@ class UI():
         if pygame.mouse.get_pressed()[0] == 0:
             self.__button_service.changeClickedStatus(type, False)
 
-
         if button != None:
             run = self.__buttonEvent(button)
             if run == False:
                 return False
-
 
     def __drawButtons(self, type):
         """
@@ -350,9 +463,6 @@ class UI():
         for button in buttons:
             display.blit(button.getImage(), (button.getX(), button.getY()))
 
-
-
-
     def main_loop(self):
         """
         display the screen
@@ -364,7 +474,7 @@ class UI():
             framerate = self.__clock.getFramerate()
             time.tick(framerate)
 
-            #self.__screen.fill(self.__screen_color)
+            # self.__screen.fill(self.__screen_color)
 
             display = self.__screen.getDisplay()
             display.blit(self.__screen.getBackgroundImage(), (0, 0))
@@ -372,7 +482,9 @@ class UI():
             if self.__screen.getMinimizedStatus() == False:
                 self.__drawWorld()
                 self.__drawGrid()
+                self.__updateWarriors()
                 self.__updateEnemies()
+                self.__drawWarriors()
                 self.__drawEnemies()
                 self.__drawButtons("common")
                 if self.__checkButtonClickUI("common") == False:
@@ -381,7 +493,6 @@ class UI():
             else:
                 self.__drawButtons("special")
                 self.__checkButtonClickUI("special")
-
 
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:

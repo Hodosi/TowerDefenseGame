@@ -22,6 +22,7 @@ class ValueObject():
     def getHeight(self):
         return self.__height
 
+
 class Button(ValueObject):
 
     def __init__(self, name, type, image, x, y, width, height):
@@ -54,6 +55,7 @@ class Road(ValueObject):
     def __init__(self, image, x, y, width, height):
         ValueObject.__init__(self, image, x, y, width, height)
 
+
 class Arrow(ValueObject):
 
     def __init__(self, image, x, y, width, height, direction):
@@ -62,5 +64,47 @@ class Arrow(ValueObject):
 
     def getDirection(self):
         return self.__direction
+
+
+class WarZoneObject(ValueObject):
+    def __init__(self, image, x, y, width, height):
+        ValueObject.__init__(self, image, x, y, width, height)
+        self.__zone_image = image
+        self.__image = image
+        self.__warrior = None
+        self.__clicked = False
+
+    def getImage(self):
+        return self.__image
+
+    def setImage(self, image):
+        if image == None:
+            self.__image = self.__zone_image
+        else:
+            self.__image = image
+
+    def getWarrior(self):
+        return self.__warrior
+
+    def setWarrior(self, value):
+        self.__warrior = value
+
+    def getClickedStatus(self):
+        return self.__clicked
+
+    def setClickedStatus(self, value):
+        self.__clicked = value
+
+
+class WarZone(WarZoneObject):
+
+    def __init__(self, image, x, y, width, height):
+        WarZoneObject.__init__(self, image, x, y, width, height)
+
+
+class WarriorZone(WarZoneObject):
+
+    def __init__(self, image, x, y, width, height):
+        WarZoneObject.__init__(self, image, x, y, width, height)
 
 

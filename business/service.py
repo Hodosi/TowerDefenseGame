@@ -1,5 +1,5 @@
-from domain.valueObject import Button, Wall, Road, Arrow
-from domain.entity import Alien
+from domain.valueObject import Button, Wall, Road, Arrow, WarZone, WarriorZone
+from domain.entity import Alien, Archer
 
 class ButtonService():
     def __init__(self, buttons_repository):
@@ -161,6 +161,33 @@ class WorldService():
         arrow = Arrow(image, x, y, width, height, direction)
         self.__world_repository.addArrow(arrow)
 
+    def createWarZone(self, image, x, y, width, height):
+        """
+        create a war_zone object and transmit it to repository for adding
+        :param image:
+        :param x:
+        :param y:
+        :param width:
+        :param height:
+        :return:
+        """
+        war_zone = WarZone(image, x, y, width, height)
+        self.__world_repository.addWarZone(war_zone)
+
+    def createWarriorZone(self, image, x, y, width, height):
+        """
+        create a war_zone object and transmit it to repository for adding
+        :param image:
+        :param x:
+        :param y:
+        :param width:
+        :param height:
+        :return:
+        """
+        warrior_zone = WarriorZone(image, x, y, width, height)
+        self.__world_repository.addWarriorZone(warrior_zone)
+
+
     def getAllWalls(self):
         """
         collect all wall objects and transmit it to UI
@@ -188,6 +215,22 @@ class WorldService():
         :return: list of road objects
         """
         return self.__world_repository.getAllArrows()
+
+    def getAllWarZones(self):
+        """
+        collect all war zone objects and transmit it to UI
+        :return: list of road objects
+        """
+        return self.__world_repository.getAllWarZones()
+
+    def getWarriorZone(self):
+        """
+        collect curent war zone and transmit it to UI
+        :return: list of road objects
+        """
+        return self.__world_repository.getWarriorZone()
+
+
 
 class EnemyService():
 
@@ -281,8 +324,121 @@ class EnemyService():
             elif alien.getDirection() == "down":
                 alien.setY(alien_y + 1)
 
-            #self.__enemy_repository.updateAlien(alien)
 
+class WarriorService():
+
+    def __init__(self, warrior_repository):
+        self.__warrior_repository = warrior_repository
+
+
+    def getWarriorsCount(self, name):
+        if name == "archer":
+            return self.__warrior_repository.getArchersCount()
+
+    def getWarriorsInitCount(self, name, level):
+        if name == "archer":
+            return self.__warrior_repository.getArchersInitCount(level)
+
+    def createWarrior(self, id, name, image, x, y, width, height, power):
+        if id == 0:
+            up = False
+            down = False
+            right = False
+            left = False
+        else:
+            pass
+
+        #id, image, x, y, width, height, power, up, down, right, left
+        if name == "archer":
+            archer = Archer(id, image, x, y, width, height, power, up, down, right, left)
+            self.__warrior_repository.addArcher(archer)
+
+    def getAllWarriors(self, name):
+        if name == "archer":
+            return self.__warrior_repository.getAllArchers()
+
+    def changeClickedStatus(self, warriors, warrior_zone, war_zones, value):
+        for warrior in warriors:
+            warrior.setClikcedStatus(value)
+
+        for war_zone in war_zones:
+            war_zone.setClickedStatus(value)
+
+        warrior_zone.setClickedStatus(value)
+
+    def updateWarriors(self, warrior_zone, war_zones, warriors, x, y):
+        ###warrior zone
+        zone_x = warrior_zone.getX()
+        zone_y = warrior_zone.getY()
+        zone_width = warrior_zone.getWidth()
+        zone_height = warrior_zone.getHeight()
+
+        if zone_x <= x <= zone_x + zone_width:
+            if zone_y <= y <= zone_y + zone_height:
+                current_warrior = warrior_zone.getWarrior()
+                if current_warrior != None and warrior_zone.getClickedStatus() == False:
+                    if current_warrior.getImage() == warriors[0].getImage():
+                        if warriors[0].getName() == "archer":
+                            warrior_zone.setImage(None)
+                            warrior_zone.setWarrior(None)
+                            count =  self.__warrior_repository.getArchersCount()
+                            count += 1
+                            self.__warrior_repository.setArchersCount(count)
+                            warrior_zone.setClickedStatus(True)
+                            return
+
+        ###war zone
+        for war_zone in war_zones:
+            zone_x = war_zone.getX()
+            zone_y = war_zone.getY()
+            zone_width = war_zone.getWidth()
+            zone_height = war_zone.getHeight()
+
+            if zone_x <= x <= zone_x + zone_width:
+                if zone_y <= y <= zone_y + zone_height:
+                    current_warrior = warrior_zone.getWarrior()
+                    war_zone_warrior = war_zone.getWarrior()
+                    if war_zone_warrior != None and war_zone.getClickedStatus() == False:
+                        if war_zone_warrior.getName() == "archer":
+                            count = self.__warrior_repository.getArchersCount()
+                            count += 1
+                            self.__warrior_repository.setArchersCount(count)
+                            warrior_zone.setClickedStatus(True)
+                            war_zone.setImage(None)
+                            war_zone.setWarrior(None)
+
+                    if current_warrior != None and war_zone.getClickedStatus() == False:
+                        war_zone.setWarrior(current_warrior)
+                        war_zone.setImage(warrior_zone.getImage())
+                        warrior_zone.setWarrior(None)
+                        warrior_zone.setImage(None)
+                        war_zone.setClickedStatus(True)
+
+
+
+        ###warriors
+        for warrior in warriors:
+            if warrior.getClikcedStatus() == True:
+                continue
+            warrior_x = warrior.getX()
+            warrior_y = warrior.getY()
+            warrior_width = warrior.getWidth()
+            warrior_height = warrior.getHeight()
+            if warrior_x <= x <= warrior_x + warrior_width:
+                if warrior_y <= y <= warrior_y + warrior_height:
+                    #main archer
+                    id = warrior.getId()
+                    if id == 0:
+                        if warrior.getName() == "archer":
+                            count = self.__warrior_repository.getArchersCount()
+                            if count > 0:
+                                if warrior_zone.getImage() != warrior.getImage():
+                                    count -= 1
+                                    self.__warrior_repository.setArchersCount(count)
+                                    warrior_zone.setImage(warrior.getImage())
+                                    warrior_zone.setWarrior(warrior)
+                                    warrior.setClikcedStatus(True)
+                                    return warrior
 
 
 
